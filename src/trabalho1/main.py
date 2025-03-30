@@ -33,7 +33,7 @@ builder.build_program(program)
 #     (+0.00, -0.20),
 # ]
 
-meteoro = actor.Meteoro(7)
+meteoro = actor.Star(10)
 
 draw_schema,vertices = area.Area.get_draw_schema([meteoro])
 
