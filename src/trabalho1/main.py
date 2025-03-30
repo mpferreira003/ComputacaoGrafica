@@ -5,6 +5,9 @@ import shaders
 import builder
 import vertice
 import area
+import math
+import actor
+
 
 glfw.init()
 glfw.window_hint(glfw.VISIBLE, glfw.FALSE);
@@ -18,14 +21,24 @@ program  = glCreateProgram()
 shaders.compile_shaders(program)
 builder.build_program(program)
 
-# preparando espaço para 4 vértices usando 2 coordenadas (x,y)
-vertices = vertice.create_vertice_array(4)
-vertices[shaders.SN_POSITION_NAME] = [
-                            (-0.20, -0.20),
-                            (+0.00, +0.20),
-                            (+0.00, -0.10),
-                            (+0.20, -0.20),
-                        ]
+
+## ----------------------------------------------------------------------------------------
+## Atores da cena
+
+# Fazendo os objetos
+# nave = [
+#     (+0.00, +0.00),
+#     (+0.20, +0.00),
+#     (+0.00, +0.20),
+#     (+0.00, -0.20),
+# ]
+
+meteoro = actor.Meteoro(7)
+
+draw_schema,vertices = area.Area.get_draw_schema([meteoro])
+
+## ----------------------------------------------------------------------------------------
+
 
 # Upload data
 buffer_VBO = builder.request_buffer_slot()
@@ -46,11 +59,6 @@ glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 
 loc_color = glGetUniformLocation(program, shaders.SN_COLOR)
 
-R = 0.7
-G = 0.0
-B = 0.2
-
-#### O código dessa célula não está sendo usado.
 
 def key_event(window,key,scancode,action,mods,scale=-1):
     global t_x, t_y
@@ -74,26 +82,24 @@ def multiplica_matriz(a,b):
 glEnable(GL_BLEND);
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-area_obj = area.Area(vertices)
 
 while not glfw.window_should_close(window):
     
     glClear(GL_COLOR_BUFFER_BIT) 
-    glClearColor(1.0, 1.0, 1.0, 1.0)
-
-    area_obj.modify(0.0, 0.0, 0.001)
-
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+    
+    meteoro.modify(0.0, 0.0, 0.001)
+    
     # Chama o método draw da instância e obtém a matriz de transformação
-    matriz_transformacao = area_obj.draw()
+    matriz_transformacao = meteoro.draw()
 
     loc = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
     glUniformMatrix4fv(loc, 1, GL_TRUE, matriz_transformacao)
-
-    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
     
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4) ## desenha os pontos
-    glUniform4f(loc_color, R, G, B, 1.0) ### modificando a cor do objeto!
-
+    ## Chama o método draw_objects que desenha de fato todos os objetos baseado no esquema
+    area.Area.draw_objects(draw_schema,loc_color)
+    
+    
     glfw.swap_buffers(window)
     glfw.poll_events()
 

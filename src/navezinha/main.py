@@ -5,7 +5,7 @@ import numpy as np
 import glm
 import shaders
 import builder
-import vertice
+import src.trabalho1.vertice as vertice
 import posmath
 import time
 
@@ -21,16 +21,6 @@ glfw.make_context_current(window)
 program  = glCreateProgram()
 shaders.compile_shaders(program)
 builder.build_program(program)
-
-
-# preparando espaço para 4 vértices usando 2 coordenadas (x,y)
-vertices = vertice.create_vertice_array(3)
-vertices[shaders.SN_POSITION_NAME] = [
-                            (+0.05, +0.00),
-                            (-0.05, +0.05),
-                            # (+0.00, +0.00),
-                            (-0.05, -0.05)
-                        ]
 
 
 buffer_VBO = builder.request_buffer_slot()

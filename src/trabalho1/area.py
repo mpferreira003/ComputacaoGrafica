@@ -1,6 +1,8 @@
 import posmath
 import numpy as np
-from OpenGL.GL import glClear, glClearColor, GL_COLOR_BUFFER_BIT
+import vertice
+import shaders
+from OpenGL.GL import *
 
 class Area():
 
@@ -12,10 +14,12 @@ class Area():
     ty = 0
     tangle = 0
 
-    def __init__(self,vertices):
+    def __init__(self,vertices,draw_method,color):
         self.x,self.y = 0, 0 ## considera que o objeto foi instanciado no 0,0
         self.mat_transform = np.eye(4) ## considera que o objeto está no 0,0, com 0 graus e escala 1
-    
+        self.vertices = vertices
+        self.draw_method = draw_method
+        self.color = color
     def modify(self, x, y, angle):
         self.tx = x
         self.ty = y
@@ -65,5 +69,38 @@ class Area():
         # Combina as matrizes: pos_anti @ rotation @ pos
         # return pos_anti @ rotation @ pos
         return  (pos_anti @ (rotation @ (pos)))
+    
+    @classmethod
+    def get_draw_schema(cls, area_list):
+        """
+        a partir de uma lista de áreas, retorna o esquema de como 
+        desenhar elas.
+        
+        Args:
+            area_list:list[Area] - lista das áreas
+        Return:
+            draw_schema:list[tuple] - lista de tuplas no formato (init,fim,draw_method,color)]
+            vertices - lista dos vertices a serem usados para desenho
+        """
+        draw_schema = []
+        all_vertices = []
+        idx_init = 0
+        for area in area_list:
+            idx_final = len(area.vertices)
+            draw_schema.append((idx_init,idx_final,area.draw_method,area.color))
+            all_vertices.extend(area.vertices)
+            idx_init=idx_final+1
             
+        vertices = vertice.create_vertice_array(len(all_vertices))
+        vertices[shaders.SN_POSITION_NAME] = all_vertices
+        return draw_schema,vertices
+    
+    @classmethod
+    def draw_objects(cls,draw_schema,loc_color,just_triangles=False):
+        if just_triangles:
+            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
+    
+        for i_idx,f_idx,dmethod,(R,G,B) in draw_schema:
+            glDrawArrays(dmethod, i_idx, f_idx) ## desenha os pontos
+            glUniform4f(loc_color, R, G, B, 1.0) ### modifica a cor do objeto
         
