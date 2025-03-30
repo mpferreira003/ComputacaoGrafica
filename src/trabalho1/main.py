@@ -33,9 +33,11 @@ builder.build_program(program)
 #     (+0.00, -0.20),
 # ]
 
-meteoro = actor.Star(10)
+meteoro = actor.Meteoro(radius_base=0.1,radius_diff=0.1)
+estrela = actor.Star(n_vertices=5)
+areas = [estrela]
 
-draw_schema,vertices = area.Area.get_draw_schema([meteoro])
+vertices = area.Area.get_world_vertices(areas)
 
 ## ----------------------------------------------------------------------------------------
 
@@ -82,22 +84,15 @@ def multiplica_matriz(a,b):
 glEnable(GL_BLEND);
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
+loc_matriz = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
 while not glfw.window_should_close(window):
     
     glClear(GL_COLOR_BUFFER_BIT) 
     glClearColor(0.0, 0.0, 0.0, 1.0)
-    
-    meteoro.modify(0.0, 0.0, 0.001)
-    
-    # Chama o método draw da instância e obtém a matriz de transformação
-    matriz_transformacao = meteoro.draw()
-
-    loc = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
-    glUniformMatrix4fv(loc, 1, GL_TRUE, matriz_transformacao)
+    estrela.modify(0.0, 0.0, 0.001)    
     
     ## Chama o método draw_objects que desenha de fato todos os objetos baseado no esquema
-    area.Area.draw_objects(draw_schema,loc_color)
+    area.Area.draw_objects(areas,loc_color,loc_matriz)
     
     
     glfw.swap_buffers(window)

@@ -4,30 +4,69 @@ import vertice
 import shaders
 from OpenGL.GL import *
 
-class Area():
 
+class Area():
+    
+    ## valores reais do objeto
     _x = 0
     _y = 0
+    _sx = 1
+    _sy = 1
     _angle = 0
-
+    
+    
+    ## valores de incremento no objeto
     tx = 0
     ty = 0
+    tsx = 0
+    tsy = 0
     tangle = 0
-
+    
     def __init__(self,vertices,draw_method,color):
         self.x,self.y = 0, 0 ## considera que o objeto foi instanciado no 0,0
         self.mat_transform = np.eye(4) ## considera que o objeto está no 0,0, com 0 graus e escala 1
         self.vertices = vertices
         self.draw_method = draw_method
         self.color = color
-    def modify(self, x, y, angle):
-        self.tx = x
-        self.ty = y
-        self.tangle = angle
-
+        self.i_idx = None
+        self.f_idx = None
+    def modify(self, x, y, sx, sy, angle,
+               instant_angle=False,
+               instant_pos=False,
+               instant_scale=False):
+        """
+        Prepara uma modificação para o objeto, que será 
+        feita de fato quando for chamado o método draw
+        """
+        if instant_pos:
+            self.tx = 0
+            self.ty = 0
+            self._x = x
+            self._y = y
+        else:
+            self.tx = x
+            self.ty = y
+        
+        if instant_scale:
+            self._sx = sx
+            self._sy = sy
+        else:
+            self.tsx = 0
+            self.tsy = 0
+            self.tsx = sx
+            self.tsy = sy
+        
+        if instant_angle:
+            self.tangle = 0
+            self._angle = angle
+        else:
+            self.tangle = angle
+    
     def reset(self):
         self.tx = 0
         self.ty = 0
+        self.tsx = 0
+        self.tsy = 0
         self.tangle = 0
 
     def draw(self):
@@ -41,18 +80,10 @@ class Area():
                                     0.0, 0.0, 0.0, 1.0], np.float32)
         if(self.tangle):
             matriz_transformacao = self.rotateOn()
-
+        
         self.reset()
         
         return matriz_transformacao
-
-    def transform(self):
-        """
-        Aplica a transformação em todos os vértices
-        """
-        ## desloca para o 0,0
-        
-        ## volta para o x,y 
     
     def move(self,x,y,relative=True):
         pass
@@ -71,36 +102,40 @@ class Area():
         return  (pos_anti @ (rotation @ (pos)))
     
     @classmethod
-    def get_draw_schema(cls, area_list):
+    def get_world_vertices(cls, area_list):
         """
-        a partir de uma lista de áreas, retorna o esquema de como 
-        desenhar elas.
+        a partir de uma lista de áreas, retorna a lista global de vértices
         
         Args:
             area_list:list[Area] - lista das áreas
         Return:
-            draw_schema:list[tuple] - lista de tuplas no formato (init,fim,draw_method,color)]
             vertices - lista dos vertices a serem usados para desenho
         """
-        draw_schema = []
+        
         all_vertices = []
         idx_init = 0
         for area in area_list:
             idx_final = len(area.vertices)
-            draw_schema.append((idx_init,idx_final,area.draw_method,area.color))
+            area.i_idx = idx_init
+            area.f_idx = idx_final
             all_vertices.extend(area.vertices)
             idx_init=idx_final+1
             
         vertices = vertice.create_vertice_array(len(all_vertices))
         vertices[shaders.SN_POSITION_NAME] = all_vertices
-        return draw_schema,vertices
+        return vertices
     
     @classmethod
-    def draw_objects(cls,draw_schema,loc_color,just_triangles=False):
+    def draw_objects(cls,areas,loc_color,loc_matriz,just_triangles=False):
         if just_triangles:
             glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
     
-        for i_idx,f_idx,dmethod,(R,G,B) in draw_schema:
-            glDrawArrays(dmethod, i_idx, f_idx) ## desenha os pontos
-            glUniform4f(loc_color, R, G, B, 1.0) ### modifica a cor do objeto
+        for area in areas:
+            # Chama o método draw da instância para obter a matriz de transformação e aplica ela nos pontos
+            matriz_transformacao = area.draw()
+            glUniformMatrix4fv(loc_matriz, 1, GL_TRUE, matriz_transformacao)
+            
+            # Desenha de fato
+            glDrawArrays(area.draw_method, area.i_idx, area.f_idx) ## desenha os pontos
+            glUniform4f(loc_color, area.color[0], area.color[1], area.color[2], 1.0) ### modifica a cor do objeto
         

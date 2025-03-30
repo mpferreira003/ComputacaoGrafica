@@ -35,7 +35,7 @@ class Star(area.Area):
             intern_circle_points.append(point)
         
         extern_circle_points = []
-        for angle in range(0+angle_step,360+angle_step,angle_step):
+        for angle in range(0+angle_step//2,360+angle_step//2,angle_step):
             angle_radians = math.radians(angle)
             point = (math.cos(angle_radians)*(extern_radius),
                      math.sin(angle_radians)*(extern_radius))
@@ -44,6 +44,6 @@ class Star(area.Area):
         vertices = []
         for i in range(n_vertices):
             vertices.append(intern_circle_points[i])
-            vertices.append(intern_circle_points[(i+2)%n_vertices])
+            vertices.append(intern_circle_points[(i+1)%n_vertices])
             vertices.append(extern_circle_points[i])
         super().__init__(vertices, GL_TRIANGLES,(1.0,1.0,1.0))
