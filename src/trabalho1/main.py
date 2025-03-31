@@ -37,10 +37,13 @@ builder.build_program(program)
 N_METEOROS = 10
 METEORO_MIN_VERTICES = 5
 METEORO_MAX_VERTICES = 20
+METEORO_ANIMATE_KEY = 'm'
 
 N_ESTRELAS = 20
 ESTRELAS_MIN_STEPS = 20
+ESTRELA_ANIMATE_KEY = 'e'
 
+can_animate_meteoros = False
 meteoros = []
 for i in range(N_METEOROS):
     r1 = random.random()
@@ -51,6 +54,7 @@ for i in range(N_METEOROS):
                                   animate_angle_step=0.01*r2,
                                   animate_move_step=0.001*r2))
     
+can_animate_estrelas = False
 estrelas = []
 for i in range(N_ESTRELAS):
     r1 = random.random()
@@ -84,14 +88,25 @@ glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 loc_color = glGetUniformLocation(program, shaders.SN_COLOR)
 
 
+was_pressed = lambda char,key: ord(char)==((97-65)+key) ## verificador pra quando a tecla é pressionada
+aux_pressed_inverter = False
 def key_event(window,key,scancode,action,mods,scale=-1):
-    global t_x, t_y
-    print("key: ",key)
-    if key == 87: t_y += 0.01*scale #cima
-    if key == 68: t_x += 0.01*scale #direita
-    if key == 83: t_y -= 0.01*scale #baixo
-    if key == 65: t_x -= 0.01*scale #esquerda
-
+    global can_animate_meteoros,can_animate_estrelas
+    global aux_pressed_inverter
+    print("key: ",key," ord(a):",ord('a'))
+    if was_pressed(METEORO_ANIMATE_KEY,key): ## anima os meteoros
+        if action == 0: ## Se ele pressionou por um tempo médio
+            aux_pressed_inverter = True
+        elif action == 1:
+            can_animate_meteoros = not can_animate_meteoros
+            aux_pressed_inverter = False
+    if was_pressed(ESTRELA_ANIMATE_KEY,key):
+        if action == 0: ## Se ele pressionou por um tempo médio
+            aux_pressed_inverter = True
+        elif action == 1:
+            can_animate_estrelas = not can_animate_estrelas
+            aux_pressed_inverter = False
+            
 glfw.set_key_callback(window,key_event)
 glfw.show_window(window)
 
@@ -106,20 +121,25 @@ glEnable(GL_BLEND);
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 loc_matriz = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
+first_animation = True
 while not glfw.window_should_close(window):
     
     glClear(GL_COLOR_BUFFER_BIT) 
     glClearColor(0.0, 0.0, 0.0, 1.0)
-    for meteoro in meteoros:
-        meteoro.animate()
+    if can_animate_meteoros or first_animation:
+        for meteoro in meteoros:
+            meteoro.animate()
     
-    for estrela in estrelas:
-        estrela.animate()
-        
+    if can_animate_estrelas or first_animation:
+        for estrela in estrelas:
+            estrela.animate()
+            
+    
+    first_animation = False    
     
     
     ## Chama o método draw_objects que desenha de fato todos os objetos
-    area.Area.draw_objects(actors,loc_color,loc_matriz,just_triangles=True)
+    area.Area.draw_objects(actors,loc_color,loc_matriz)
     
     
     glfw.swap_buffers(window)
