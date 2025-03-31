@@ -84,7 +84,6 @@ class Star(area.Area):
             vertices.append(intern_circle_points[i])
             vertices.append(intern_circle_points[(i+1)%n_vertices])
             vertices.append(extern_circle_points[i])
-        print("Len vertices star: ",len(vertices))
         super().__init__(vertices, GL_TRIANGLES,(1.0,1.0,1.0))
         
         
@@ -108,7 +107,7 @@ class Shot(area.Area):
     def __init__(self,head_length=2,body_length=7,size_div=100,
                  animate_move_step=0.01):
         self.animate_move_step = animate_move_step
-        
+        self.visible = False
         
         ## cálculo das distâncias do corpo
         part1 = 0
@@ -182,11 +181,15 @@ class Shot(area.Area):
             ## faz o tiro voltar para a posição da nave
             self._x = ship_pos[0]
             self._y = ship_pos[1]
-        print("xy: ",self._x,self._y)
-        self.modify(y=self.animate_move_step,angle=2,instant_angle=True)
-        
+        self.modify(y=self.animate_move_step)
+     
+## Objeto 3d   
 class Ship(area.Area):
-    def __init__(self,back_length=0.06,frontal_length=0.08,body_size=0.04):
+    def __init__(self,back_length=0.06,frontal_length=0.08,body_size=0.04,
+                 animate_move_step=0.01):
+        self.animate_move_step = animate_move_step
+        self._y = -0.75
+        
         points = [
             (0,0,0), ## centro do corpo
             
@@ -224,9 +227,48 @@ class Ship(area.Area):
         super().__init__(vertices, GL_TRIANGLES,(0.6,0.0,0.4))
     def animate(self,side):
         if side==0:
-            pass ## não se move
+            pass
         elif side == -1:
             ## se move pra um lado
-            pass
+            self.modify(x=-self.animate_move_step)
         elif side == 1:
             ## se move pro outro lado
+            self.modify(x=+self.animate_move_step)
+    def current_pos(self):
+        return (self._x,self._y)
+    
+
+class Shield(area.Area):
+    def __init__(self,n_vertices=80,shield_radius=0.2,external_radius=0.02):
+        self.visible = False
+        r1 = shield_radius
+        r2 = r1 + external_radius
+        
+        circle1 = []
+        for angle in range(0,360+90,(360+90)//n_vertices):
+            angle_radians = math.radians(angle)
+            
+            point = (math.cos(angle_radians)*(r1),
+                     math.sin(angle_radians)*(r1))
+            circle1.append(point)
+        
+        circle2 = []
+        for angle in range(0,360+90,(360+90)//n_vertices):
+            angle_radians = math.radians(angle)
+            
+            point = (math.cos(angle_radians)*(r2),
+                     math.sin(angle_radians)*(r2))
+            circle2.append(point)
+        
+        vertices = []
+        for i in range(n_vertices):
+            vertices.append(circle1[i])
+            vertices.append(circle2[i])
+        super().__init__(vertices, GL_TRIANGLE_STRIP,(0.0,0.3,0.9))
+        
+    def animate(self,ship_pos):
+        if True:
+            ## faz o tiro voltar para a posição da nave
+            self._x = ship_pos[0]
+            self._y = ship_pos[1]
+        self.modify(y=0.001)

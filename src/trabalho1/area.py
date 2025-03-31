@@ -21,6 +21,7 @@ class Area():
     tsx = 0
     tsy = 0
     tangle = 0
+    visible=True
     
     def __init__(self,vertices,draw_method,color):
         self.mat_transform = np.eye(4,dtype=np.float32) ## considera que o objeto está no 0,0, com 0 graus e escala 1
@@ -143,11 +144,12 @@ class Area():
             glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
     
         for area in areas:
-            # Chama o método draw da instância para obter a matriz de transformação e aplica ela nos pontos
-            matriz_transformacao = area.prepare_to_draw()
-            glUniformMatrix4fv(loc_matriz, 1, GL_TRUE, matriz_transformacao)
-            
-            # Desenha de fato
-            glUniform4f(loc_color, area.color[0], area.color[1], area.color[2], 1.0) ### modifica a cor do objeto
-            glDrawArrays(area.draw_method, area.i_idx, area.len_vertices) ## desenha os pontos
+            if area.visible:
+                # Chama o método draw da instância para obter a matriz de transformação e aplica ela nos pontos
+                matriz_transformacao = area.prepare_to_draw()
+                glUniformMatrix4fv(loc_matriz, 1, GL_TRUE, matriz_transformacao)
+                
+                # Desenha de fato
+                glUniform4f(loc_color, area.color[0], area.color[1], area.color[2], 1.0) ### modifica a cor do objeto
+                glDrawArrays(area.draw_method, area.i_idx, area.len_vertices) ## desenha os pontos
         

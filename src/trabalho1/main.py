@@ -42,7 +42,14 @@ METEORO_ANIMATE_KEY = 'm'
 
 N_ESTRELAS = 20
 ESTRELAS_MIN_STEPS = 20
-ESTRELA_ANIMATE_KEY = 'e'
+ESTRELA_ANIMATE_KEY = 'n'
+
+SHOT_ANIMATE_KEY = 32 ## espaço
+
+SHIELD_ANIMATE_KEY = 'e'
+SHIP_RIGHT_KEY = 'd'
+SHIP_LEFT_KEY = 'a'
+
 
 can_animate_meteoros = False
 meteoros = []
@@ -66,16 +73,19 @@ for i in range(N_ESTRELAS):
                                animation_max_steps= amx if (amx:=100*r2) > ESTRELAS_MIN_STEPS else ESTRELAS_MIN_STEPS))
 
 
+can_animate_shoots = False
 shots = []
 for i in range(1):
     shots.append(actor.Shot())
 
-ship_pos = (0,0)
-ships = []
-for i in range(1):
-    ships.append(actor.Ship())
+can_animate_shield = False
+shield = actor.Shield()
 
-actors = estrelas + meteoros + shots + ships
+
+ship_direction = 0
+ship = actor.Ship()
+
+actors = estrelas + meteoros + shots + [ship] + [shield]
 vertices = area.Area.get_world_vertices(actors)
 
 ## ----------------------------------------------------------------------------------------
@@ -101,24 +111,58 @@ loc_color = glGetUniformLocation(program, shaders.SN_COLOR)
 was_pressed = lambda char,key: ord(char)==((97-65)+key) ## verificador pra quando a tecla é pressionada
 aux_pressed_inverter = False ## auxilia o processo de detectar quando vc fica pressionando por mais tempo (sistema de action usado na key_event)
 def key_event(window,key,scancode,action,mods,scale=-1):
-    global can_animate_meteoros,can_animate_estrelas
+    global can_animate_meteoros,can_animate_estrelas,can_animate_shoots,can_animate_shield
     global aux_pressed_inverter, program_running
-    print("key: ",key," ord(a):",ord('a'))
-    if was_pressed(METEORO_ANIMATE_KEY,key): ## anima os meteoros
+    global ship_direction
+    
+    ## Controle dos meteoros
+    if was_pressed(METEORO_ANIMATE_KEY,key):
         if action == 0: ## Se ele pressionou por um tempo médio
             aux_pressed_inverter = True
         elif action == 1:
             can_animate_meteoros = not can_animate_meteoros
             aux_pressed_inverter = False
+    
+    ## Controle das estrelas
     if was_pressed(ESTRELA_ANIMATE_KEY,key):
         if action == 0: ## Se ele pressionou por um tempo médio
             aux_pressed_inverter = True
         elif action == 1:
             can_animate_estrelas = not can_animate_estrelas
             aux_pressed_inverter = False
+    
+    ## Controle dos tiros
+    if key == SHOT_ANIMATE_KEY:
+        if action == 0: ## Se ele pressionou por um tempo médio
+            aux_pressed_inverter = True
+        elif action == 1:
+            can_animate_shoots = not can_animate_shoots
+            aux_pressed_inverter = False
+    
+    ## Controle do escudo
+    if was_pressed(SHIELD_ANIMATE_KEY,key):
+        if action == 0: ## Se ele pressionou por um tempo médio
+            aux_pressed_inverter = True
+        elif action == 1:
+            can_animate_shield = not can_animate_shield
+            aux_pressed_inverter = False
+    
+    
+    # Controle da nave
+    if was_pressed(SHIP_RIGHT_KEY,key):
+        if action == 0: ## Se ele pressionou por um tempo médio
+            ship_direction = 0 
+        elif action == 1:
+            ship_direction = 1
+    if was_pressed(SHIP_LEFT_KEY,key):
+        if action == 0: ## Se ele pressionou por um tempo médio
+            ship_direction = 0
+        elif action == 1:
+            ship_direction = -1
+    
+    ## Controle do programa
     if was_pressed(QUIT_PROGRAM_KEY,key):
         program_running = False
-            
 glfw.set_key_callback(window,key_event)
 glfw.show_window(window)
 
@@ -147,8 +191,21 @@ while (not glfw.window_should_close(window)) and program_running:
         for estrela in estrelas:
             estrela.animate()
             
-    for shot in shots:
-        shot.animate(ship_pos)
+    if can_animate_shoots:
+        for shot in shots:
+            shot.visible=True
+            shot.animate(ship.current_pos())
+    else:
+        for shot in shots:
+            shot.visible=False
+    
+    if can_animate_shield:
+        shield.visible=True
+        shield.animate(ship.current_pos())
+    else:
+        shield.visible=False
+    
+    ship.animate(ship_direction)
     
     
     ## Chama o método draw_objects que desenha de fato todos os objetos
