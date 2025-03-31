@@ -3,9 +3,9 @@ from OpenGL.GL import *
 import numpy as np
 import shaders
 import builder
-import vertice
 import area
 import math
+import random
 import actor
 
 
@@ -33,11 +33,36 @@ builder.build_program(program)
 #     (+0.00, -0.20),
 # ]
 
-meteoro = actor.Meteoro(radius_base=0.1,radius_diff=0.1)
-estrela = actor.Star(n_vertices=5)
-areas = [estrela]
 
-vertices = area.Area.get_world_vertices(areas)
+N_METEOROS = 10
+METEORO_MIN_VERTICES = 5
+METEORO_MAX_VERTICES = 20
+
+N_ESTRELAS = 20
+ESTRELAS_MIN_STEPS = 20
+
+meteoros = []
+for i in range(N_METEOROS):
+    r1 = random.random()
+    r2 = random.random()
+    meteoros.append(actor.Meteoro(n_vertices = random.randint(METEORO_MIN_VERTICES,METEORO_MAX_VERTICES),
+                                  radius_base=0.1*r1,
+                                  radius_diff=0.025*r1,
+                                  animate_angle_step=0.01*r2,
+                                  animate_move_step=0.001*r2))
+    
+estrelas = []
+for i in range(N_ESTRELAS):
+    r1 = random.random()
+    r2 = random.random()
+    estrelas.append(actor.Star(n_vertices=5 if random.random()>0.5 else 6,
+                               intern_radius=0.01*r1,
+                               extern_radius=0.04*r1,
+                               animation_max_steps= amx if (amx:=100*r2) > ESTRELAS_MIN_STEPS else ESTRELAS_MIN_STEPS))
+
+
+actors = estrelas + meteoros
+vertices = area.Area.get_world_vertices(actors)
 
 ## ----------------------------------------------------------------------------------------
 
@@ -54,11 +79,8 @@ offset = ctypes.c_void_p(0)
 
 
 loc = glGetAttribLocation(program, shaders.SN_POSITION_NAME)
-
 glEnableVertexAttribArray(loc)
-
 glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
-
 loc_color = glGetUniformLocation(program, shaders.SN_COLOR)
 
 
@@ -71,7 +93,6 @@ def key_event(window,key,scancode,action,mods,scale=-1):
     if key == 65: t_x -= 0.01*scale #esquerda
 
 glfw.set_key_callback(window,key_event)
-
 glfw.show_window(window)
 
 def multiplica_matriz(a,b):
@@ -89,10 +110,16 @@ while not glfw.window_should_close(window):
     
     glClear(GL_COLOR_BUFFER_BIT) 
     glClearColor(0.0, 0.0, 0.0, 1.0)
-    estrela.modify(0.0, 0.0, 0.001)    
+    for meteoro in meteoros:
+        meteoro.animate()
     
-    ## Chama o método draw_objects que desenha de fato todos os objetos baseado no esquema
-    area.Area.draw_objects(areas,loc_color,loc_matriz)
+    for estrela in estrelas:
+        estrela.animate()
+        
+    
+    
+    ## Chama o método draw_objects que desenha de fato todos os objetos
+    area.Area.draw_objects(actors,loc_color,loc_matriz,just_triangles=True)
     
     
     glfw.swap_buffers(window)
