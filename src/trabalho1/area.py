@@ -24,7 +24,12 @@ class Area():
     
     def __init__(self,vertices,draw_method,color):
         self.mat_transform = np.eye(4,dtype=np.float32) ## considera que o objeto está no 0,0, com 0 graus e escala 1
-        self.vertices = vertices
+        
+        ## aplica um preprocessamento para objetos 2d, colocando 0 no eixo z
+        if len(vertices[0])==2: ## caso seja um objeto 2d
+            self.vertices = [(v[0],v[1],0) for v in vertices]
+        else:
+            self.vertices = vertices
         self.draw_method = draw_method
         self.color = color
         self.i_idx = None

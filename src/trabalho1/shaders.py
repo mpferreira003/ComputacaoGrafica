@@ -5,10 +5,10 @@ SN_COLOR = 'color'
 SN_MAT_TRANSFORMATION = 'transformation'
 
 vertex_code = """
-        attribute vec2 {pos};
+        attribute vec3 {pos};
         uniform mat4 {transformation};
         void main(){{
-            gl_Position = {transformation} * vec4({pos},0.0,1.0);
+            gl_Position = {transformation} * vec4({pos},1.0);
         }}
         """.format(pos=SN_POSITION_NAME,transformation=SN_MAT_TRANSFORMATION)
 vertex_code = vertex_code.replace("{{", "{").replace("}}", "}")

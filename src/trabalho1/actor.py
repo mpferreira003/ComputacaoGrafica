@@ -1,6 +1,7 @@
 import area
 import math
 import random
+import numpy as np
 from OpenGL.GL import *
 
 
@@ -100,3 +101,132 @@ class Star(area.Area):
             if self.animation_step+1>=self.animation_max_steps:
                 self.animation_state=True
             self.modify(sx=-self.animation_increment, sy=-self.animation_increment)
+            
+            
+## Objeto 3d
+class Shot(area.Area):
+    def __init__(self,head_length=2,body_length=7,size_div=100,
+                 animate_move_step=0.01):
+        self.animate_move_step = animate_move_step
+        
+        
+        ## cálculo das distâncias do corpo
+        part1 = 0
+        part2 = part1 + head_length
+        part3 = part2 + body_length
+        part4 = part3 + head_length
+        self.total_length = part4
+        
+        vertices = [
+            (+0,part1,+0), ## base do tiro (0)
+            
+            (-1,part2,-1), ## quadrado inferior do tiro (1-4)
+            (-1,part2,+1),
+            (+1,part2,+1),
+            (+1,part2,-1),
+            
+            (-1,part3,-1), ## quadrado superior do tiro (5-8)
+            (-1,part3,+1),
+            (+1,part3,+1),
+            (+1,part3,-1),
+            
+            (+0,part4,+0) ## cabeça do tiro (9)
+        ]
+        triangles = [
+            ## triangulos da pirâmide inferior
+            (0,1,2),
+            (0,2,3),
+            (0,3,4),
+            (0,4,1),
+            
+            ## triangulos da pirâmide superior
+            (9,5,6),
+            (9,6,7),
+            (9,7,8),
+            (9,8,5),
+            
+            ## corpo do tiro
+            ## direito
+            (1,2,5), 
+            (2,5,6),
+            
+            ## esquerdo
+            (4,3,8),
+            (3,8,7),
+            
+            ## superior
+            (2,3,6),
+            (3,6,7),
+            
+            ## inferior
+            (1,4,5),
+            (4,5,8)
+        ]
+        
+        aux = []
+        for triangle in triangles:
+            i,j,k = triangle
+            aux.append(vertices[i])
+            aux.append(vertices[j])
+            aux.append(vertices[k])
+        
+        
+        vertices = np.array(aux,dtype='float64')
+        vertices[:,0] -= (part4/2)  ## deixa o tiro no centro
+        vertices /= size_div ## deixa o tiro pequeno
+        vertices = vertices.tolist()
+        super().__init__(vertices, GL_TRIANGLES,(0.8,0.8,0.0))
+        
+    def animate(self,ship_pos):
+        if self._y > 1.2:
+            ## faz o tiro voltar para a posição da nave
+            self._x = ship_pos[0]
+            self._y = ship_pos[1]
+        print("xy: ",self._x,self._y)
+        self.modify(y=self.animate_move_step,angle=2,instant_angle=True)
+        
+class Ship(area.Area):
+    def __init__(self,back_length=0.06,frontal_length=0.08,body_size=0.04):
+        points = [
+            (0,0,0), ## centro do corpo
+            
+            ## corpo principal
+            (-body_size,-back_length,-body_size),
+            (-body_size,-back_length,+body_size),
+            (+body_size,-back_length,+body_size),
+            (+body_size,-back_length,-body_size),
+            
+            (0,frontal_length,0) ## cabeça da nave
+            
+        ]
+        
+        triangles = [
+            ## conexões da parte de dentro
+            (0,1,2),
+            (0,2,3),
+            (0,3,4),
+            (0,4,1),
+            
+            ## conexões da parte de fora
+            (5,1,2),
+            (5,2,3),
+            (5,3,4),
+            (5,4,1),
+        ]
+        
+        vertices = []
+        for triangle in triangles:
+            i,j,k = triangle
+            vertices.append(points[i])
+            vertices.append(points[j])
+            vertices.append(points[k])
+        
+        super().__init__(vertices, GL_TRIANGLES,(0.6,0.0,0.4))
+    def animate(self,side):
+        if side==0:
+            pass ## não se move
+        elif side == -1:
+            ## se move pra um lado
+            pass
+        elif side == 1:
+            ## se move pro outro lado
