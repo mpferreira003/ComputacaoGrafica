@@ -1,14 +1,13 @@
 import glfw
 from OpenGL.GL import *
 import numpy as np
-import shaders
-import builder
+import utils.shaders as shaders
+import utils.builder as builder
 import area
-import math
-import random
 import actor
+import random
 
-
+## Iniciando o programa
 glfw.init()
 glfw.window_hint(glfw.VISIBLE, glfw.FALSE);
 
@@ -23,24 +22,17 @@ builder.build_program(program)
 
 
 ## ----------------------------------------------------------------------------------------
-## Atores da cena
+## Parâmetros
 
-# Fazendo os objetos
-# nave = [
-#     (+0.00, +0.00),
-#     (+0.20, +0.00),
-#     (+0.00, +0.20),
-#     (+0.00, -0.20),
-# ]
-
+TRIANGLE_SHOW_KEY = 'p'
 QUIT_PROGRAM_KEY = 'q'
 
-N_METEOROS = 10
+N_METEOROS = 20
 METEORO_MIN_VERTICES = 5
 METEORO_MAX_VERTICES = 20
 METEORO_ANIMATE_KEY = 'm'
 
-N_ESTRELAS = 20
+N_ESTRELAS = 40
 ESTRELAS_MIN_STEPS = 20
 ESTRELA_ANIMATE_KEY = 'n'
 
@@ -51,6 +43,8 @@ SHIP_RIGHT_KEY = 'd'
 SHIP_LEFT_KEY = 'a'
 
 
+
+## Atores da cena
 can_animate_meteoros = False
 meteoros = []
 for i in range(N_METEOROS):
@@ -85,6 +79,7 @@ shield = actor.Shield()
 ship_direction = 0
 ship = actor.Ship()
 
+## Objetos principais de atores e vértices
 actors = estrelas + meteoros + shots + [ship] + [shield]
 vertices = area.Area.get_world_vertices(actors)
 
@@ -101,18 +96,23 @@ glBindBuffer(GL_ARRAY_BUFFER, buffer_VBO) ## vincula a gpu
 stride = vertices.strides[0]
 offset = ctypes.c_void_p(0)
 
-
+## Vertex
 loc = glGetAttribLocation(program, shaders.SN_POSITION_NAME)
 glEnableVertexAttribArray(loc)
 glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 loc_color = glGetUniformLocation(program, shaders.SN_COLOR)
 
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+loc_matriz = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
 
+## Eventos de teclado
 was_pressed = lambda char,key: ord(char)==((97-65)+key) ## verificador pra quando a tecla é pressionada
 aux_pressed_inverter = False ## auxilia o processo de detectar quando vc fica pressionando por mais tempo (sistema de action usado na key_event)
+show_triangles = False
 def key_event(window,key,scancode,action,mods,scale=-1):
     global can_animate_meteoros,can_animate_estrelas,can_animate_shoots,can_animate_shield
-    global aux_pressed_inverter, program_running
+    global aux_pressed_inverter, program_running, show_triangles
     global ship_direction
     
     ## Controle dos meteoros
@@ -163,34 +163,38 @@ def key_event(window,key,scancode,action,mods,scale=-1):
     ## Controle do programa
     if was_pressed(QUIT_PROGRAM_KEY,key):
         program_running = False
+    
+    ## Controle dos triângulos
+    if was_pressed(TRIANGLE_SHOW_KEY,key):
+        if action == 0: ## Se ele pressionou por um tempo médio
+            aux_pressed_inverter = True
+        elif action == 1:
+            show_triangles = not show_triangles
+            aux_pressed_inverter = False
 glfw.set_key_callback(window,key_event)
 glfw.show_window(window)
 
-def multiplica_matriz(a,b):
-    m_a = a.reshape(4,4)
-    m_b = b.reshape(4,4)
-    m_c = np.dot(m_a,m_b)
-    c = m_c.reshape(1,16)
-    return c
 
-glEnable(GL_BLEND);
-glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-loc_matriz = glGetUniformLocation(program, shaders.SN_MAT_TRANSFORMATION)
+## Loop principal
 first_animation = True
 program_running = True
 while (not glfw.window_should_close(window)) and program_running:
-    
+    ## Reseta a tela
     glClear(GL_COLOR_BUFFER_BIT) 
     glClearColor(0.0, 0.0, 0.0, 1.0)
+    
+    ## Animação dos meteoros
     if can_animate_meteoros or first_animation:
         for meteoro in meteoros:
             meteoro.animate()
     
+    ## Animação das estrelas
     if can_animate_estrelas or first_animation:
         for estrela in estrelas:
             estrela.animate()
-            
+    
+    ## Animação dos tiros
     if can_animate_shoots:
         for shot in shots:
             shot.visible=True
@@ -199,17 +203,19 @@ while (not glfw.window_should_close(window)) and program_running:
         for shot in shots:
             shot.visible=False
     
+    ## Animação do escudo
     if can_animate_shield:
         shield.visible=True
         shield.animate(ship.current_pos())
     else:
         shield.visible=False
     
+    ## Animação da nave
     ship.animate(ship_direction)
     
     
     ## Chama o método draw_objects que desenha de fato todos os objetos
-    area.Area.draw_objects(actors,loc_color,loc_matriz,just_triangles=True)
+    area.Area.draw_objects(actors,loc_color,loc_matriz,just_triangles=show_triangles)
     
     first_animation = False
     glfw.swap_buffers(window)

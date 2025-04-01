@@ -19,8 +19,8 @@ class Meteoro(area.Area):
         self.animate_move_step = animate_move_step
         self.animate_angle_step = animate_angle_step
         if pos is None:
-            self._x = (random.random()-0.5)*0.8*2
-            self._y = (random.random()-0.5)*0.8*2
+            self._x = (random.random()-0.5)*2
+            self._y = (random.random()-0.5)*2
         else:
             self._x = pos[0]
             self._y = pos[1]
@@ -36,6 +36,9 @@ class Meteoro(area.Area):
         super().__init__(vertices, GL_TRIANGLE_FAN,(0.6,0.2,0.0))
     
     def animate(self):
+        """
+        realiza um step para baixo
+        """
         self.modify(y=-self.animate_move_step,angle=self.animate_angle_step)
         
         
@@ -51,11 +54,12 @@ class Star(area.Area):
                  animation_max_steps = 10,
                  pos = None):
         """
-        Faz duas áreas circulares e pega os vértices dos triângulos de forma dividida entre elas
+        Faz duas áreas circulares (um interno e externo) e pega os vértices dos
+          triângulos de forma dividida entre elas
         """
         if pos is None:
-            self.modify(x=(random.random()-0.5)*0.8*2,
-                        y=(random.random()-0.5)*0.8*2,
+            self.modify(x=(random.random()-0.5)*2,
+                        y=(random.random()-0.5)*2,
                         instant_pos=True)
         else:
             self._x = pos[0]
@@ -89,6 +93,10 @@ class Star(area.Area):
         
     ## Método que é chamado na main para animar o objeto
     def animate(self):    
+        """
+        Tem um contador que varia de 0 a self.animation_max_steps, fazendo ciclos de 
+        aumentar e diminuir e alterando o escale nesse meio tempo
+        """
         if self.animation_state:
             self.animation_step-=1
             if self.animation_step-1<=0:
@@ -106,6 +114,10 @@ class Star(area.Area):
 class Shot(area.Area):
     def __init__(self,head_length=2,body_length=7,size_div=100,
                  animate_move_step=0.01):
+        """
+        Veja a imagem do Shot para entender como estão sendo 
+        feitos os vértices
+        """
         self.animate_move_step = animate_move_step
         self.visible = False
         
@@ -131,6 +143,8 @@ class Shot(area.Area):
             
             (+0,part4,+0) ## cabeça do tiro (9)
         ]
+        
+        ## marca as conexões que vão ter no objeto
         triangles = [
             ## triangulos da pirâmide inferior
             (0,1,2),
@@ -177,6 +191,10 @@ class Shot(area.Area):
         super().__init__(vertices, GL_TRIANGLES,(0.8,0.8,0.0))
         
     def animate(self,ship_pos):
+        """
+        Fica indo pra cima, mas quando passa um pouco, volta pra 
+        posição que está a nave
+        """
         if self._y > 1.2:
             ## faz o tiro voltar para a posição da nave
             self._x = ship_pos[0]
@@ -187,6 +205,9 @@ class Shot(area.Area):
 class Ship(area.Area):
     def __init__(self,back_length=0.06,frontal_length=0.08,body_size=0.04,
                  animate_move_step=0.01):
+        """
+        Veja o esquema da nave para entender os pontos
+        """
         self.animate_move_step = animate_move_step
         self._y = -0.75
         
@@ -203,6 +224,7 @@ class Ship(area.Area):
             
         ]
         
+        ## Marcação das conexões dos triângulos
         triangles = [
             ## conexões da parte de dentro
             (0,1,2),
@@ -226,6 +248,9 @@ class Ship(area.Area):
         
         super().__init__(vertices, GL_TRIANGLES,(0.6,0.0,0.4))
     def animate(self,side):
+        """
+        Pode mover a nave tanto para a direita quanto pra esquerda
+        """
         if side==0:
             pass
         elif side == -1:
@@ -240,6 +265,10 @@ class Ship(area.Area):
 
 class Shield(area.Area):
     def __init__(self,n_vertices=80,shield_radius=0.2,external_radius=0.02):
+        """
+        Faz dois círculos, um interno e um externo, e conecta os pontos 
+        através do STRIP
+        """
         self.visible = False
         r1 = shield_radius
         r2 = r1 + external_radius
@@ -267,6 +296,9 @@ class Shield(area.Area):
         super().__init__(vertices, GL_TRIANGLE_STRIP,(0.0,0.3,0.9))
         
     def animate(self,ship_pos):
+        """
+        Move o escudo para a posição da nave
+        """
         if True:
             ## faz o tiro voltar para a posição da nave
             self._x = ship_pos[0]

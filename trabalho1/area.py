@@ -1,7 +1,7 @@
-import posmath
+import utils.posmath as posmath
 import numpy as np
-import vertice
-import shaders
+import utils.vertice as vertice
+import utils.shaders as shaders
 from OpenGL.GL import *
 
 
@@ -75,6 +75,10 @@ class Area():
         self.tangle = 0
     
     def prepare_to_draw(self):
+        """
+        Cria a matriz de transformação com base no que foi requisitado
+        pelo modify (por meio da apply_on_matrix)
+        """
         self._x += self.tx
         self._y += self.ty
         self._sx += self.tsx
@@ -90,7 +94,9 @@ class Area():
         return matriz_transformacao
     
     def apply_on_matrix(self):
-        # if (self.tx or self.ty) and (self.tangle or self.tsx or self.tsy):
+        """
+        Método que obtém a matriz de transformação com base no que foi definido no modify
+        """
         if (self.tangle or self.tsx or self.tsy):
             ## escala, faz rotação e move (no mesmo eixo)
             # print("## escala, faz rotação e move (no mesmo eixo)")
@@ -100,12 +106,7 @@ class Area():
             self.mat_transform = (T @ (S @ (R)))
             self._x += self.tx
             self._y += self.ty
-        # elif (self.tangle or self.tsx or self.tsy):
-            ## faz rotação ou escala
-            # print("## faz rotação ou escala")
-            # S = posmath.get_scale_matrix(self._sx, self._sy, 1.0)
-            # R = posmath.get_rot_matrix(self._angle)
-            # self.mat_transform = (S @ (R))
+        
         elif (self.tx or self.ty):
             ## apenas move
             # print("## apenas move")
@@ -140,6 +141,14 @@ class Area():
     
     @classmethod
     def draw_objects(cls,areas,loc_color,loc_matriz,just_triangles=False):
+        """
+        Desenha todos as areas visíveis na tela
+        Args:
+            areas:list[Area] - todas as áreas
+            loc_color - vertex de cor
+            loc_matriz - vertex da matriz
+            just_triangles - caso seja true, mostra apenas os triangulos
+        """
         if just_triangles:
             glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
     
