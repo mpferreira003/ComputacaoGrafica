@@ -255,10 +255,10 @@ class Ship(area.Area):
             pass
         elif side == -1:
             ## se move pra um lado
-            self.modify(x=-self.animate_move_step)
+            self.modify(x=-self.animate_move_step,pivot='y',angle=0.1)
         elif side == 1:
             ## se move pro outro lado
-            self.modify(x=+self.animate_move_step)
+            self.modify(x=+self.animate_move_step,pivot='y',angle=-0.1)
     def current_pos(self):
         return (self._x,self._y)
     

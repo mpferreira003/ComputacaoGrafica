@@ -22,6 +22,7 @@ class Area():
     tsy = 0
     tangle = 0
     visible=True
+    pivot = 'z'
     
     def __init__(self,vertices,draw_method,color):
         self.mat_transform = np.eye(4,dtype=np.float32) ## considera que o objeto está no 0,0, com 0 graus e escala 1
@@ -35,7 +36,8 @@ class Area():
         self.color = color
         self.i_idx = None
         self.len_vertices = None
-    def modify(self, x=0, y=0, sx=0, sy=0, angle=0,
+    def modify(self, x=0, y=0, sx=0, sy=0, 
+               angle=0,pivot='z',
                instant_angle=False,
                instant_pos=False,
                instant_scale=False):
@@ -66,6 +68,8 @@ class Area():
             self._angle = angle
         else:
             self.tangle = angle
+        
+        self.pivot = pivot
     
     def reset(self):
         self.tx = 0
@@ -73,6 +77,7 @@ class Area():
         self.tsx = 0
         self.tsy = 0
         self.tangle = 0
+        self.pivot='z'
     
     def prepare_to_draw(self):
         """
@@ -102,7 +107,7 @@ class Area():
             # print("## escala, faz rotação e move (no mesmo eixo)")
             T = posmath.get_transl_matrix(self._x, self._y)
             S = posmath.get_scale_matrix(self._sx, self._sy, 1.0)
-            R = posmath.get_rot_matrix(self._angle)
+            R = posmath.get_rot_matrix(self._angle,pivot=self.pivot)
             self.mat_transform = (T @ (S @ (R)))
             self._x += self.tx
             self._y += self.ty
