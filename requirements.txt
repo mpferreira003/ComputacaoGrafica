@@ -1,4 +1,4 @@
-numpy
-PyOpenGL 
-PyOpenGL_accelerate
-glfw
+glfw==2.8.0
+numpy==2.2.4
+PyOpenGL==3.1.9
+PyOpenGL-accelerate==3.1.9
