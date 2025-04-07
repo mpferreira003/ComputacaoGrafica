@@ -1,7 +1,5 @@
 import numpy as np
 import math
-import numpy as np
-import math
 
 def get_rot_matrix(angle, pivot='z'):
     """
