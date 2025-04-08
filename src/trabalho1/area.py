@@ -156,7 +156,8 @@ class Area():
         """
         if just_triangles:
             glPolygonMode(GL_FRONT_AND_BACK,GL_LINE) ## ative esse comando para enxergar os triângulos
-    
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
         for area in areas:
             if area.visible:
                 # Chama o método draw da instância para obter a matriz de transformação e aplica ela nos pontos
