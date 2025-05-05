@@ -9,10 +9,7 @@ class Camera():
     polygonal_mode = False
     
     firstMouse = True
-    yaw   = -90.0	# yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-    pitch =  0.0
-    fov   =  45.0
-
+    
     # timing
     deltaTime = 0.0	# time between current frame and last frame
     lastFrame = 0.0
@@ -21,8 +18,15 @@ class Camera():
                  cameraPos   = glm.vec3(0.0,  0.0,  1.0),
                  cameraFront = glm.vec3(0.0,  0.0, -1.0),
                  cameraUp    = glm.vec3(0.0,  1.0,  0.0),
+                 yaw   = -90.0,
+                 pitch =  0.0,
+                 fov   =  45.0,
                  sensitivity:float=0.1,
                  main_speed=50):
+        self.yaw=yaw
+        self.pitch=pitch
+        self.fov=fov
+        
         self.sensitivity=sensitivity
         self.main_speed=main_speed
         self.cameraSpeed = 0
@@ -51,9 +55,11 @@ class Camera():
     def atualize_speed(self,deltaTime):
         self.cameraSpeed = self.main_speed*deltaTime
     def key_event(self,window,key,scancode,action,mods):
-        
         if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
             glfw.set_window_should_close(window, True)
+        
+        if key == glfw.KEY_Q and action == glfw.PRESS:
+            self.get_status()
         
         if key == glfw.KEY_W and (action == glfw.PRESS or action == glfw.REPEAT):
             self.cameraPos += self.cameraSpeed * self.cameraFront
@@ -67,10 +73,22 @@ class Camera():
         if key == glfw.KEY_D and (action == glfw.PRESS or action == glfw.REPEAT):
             self.cameraPos += glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
 
+        if key == glfw.KEY_SPACE and (action == glfw.PRESS or action == glfw.REPEAT):
+            self.cameraPos += self.cameraUp * self.cameraSpeed
+        
+        if key == glfw.KEY_LEFT_SHIFT and (action == glfw.PRESS or action == glfw.REPEAT):
+            self.cameraPos -= self.cameraUp * self.cameraSpeed
+            
         if key == glfw.KEY_P and action == glfw.PRESS:
             polygonal_mode = not polygonal_mode
         
-
+    def get_status(self):
+        print("Camera status --- ")
+        print(f"yaw: {self.yaw}")
+        print(f"pitch: {self.pitch}")
+        print(f"fov: {self.fov}\n")
+    
+    
     def framebuffer_size_callback(window, largura, altura):
         
         # make sure the viewport matches the new window dimensions note that width and 

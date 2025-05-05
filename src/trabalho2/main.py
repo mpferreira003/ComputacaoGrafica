@@ -9,6 +9,7 @@ from PIL import Image
 from shaders.shader import Shader
 import loader
 import camera
+from model import Model
 
 ## Iniciando ----------------------------
 glfw.init()
@@ -107,12 +108,13 @@ polygonal_mode = False
 range_caixas = (-5,5)
 textures = np.random.randint(0,3,len(range(*range_caixas)))
 
-from model import Model
-import matriz
 
 caixas = []
 for i in range(5):
-    caixas.append(Model(verticeInicial_caixa, quantosVertices_caixa,i%3))
+    caixas.append(Model(verticeInicial_caixa, 
+                        quantosVertices_caixa,
+                        i%3,
+                        pos=np.array([0,0,i*2])))
 
 
 lastFrame = glfw.get_time()

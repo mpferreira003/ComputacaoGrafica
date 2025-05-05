@@ -50,7 +50,6 @@ def load_model_from_file(filename):
 
 
 def load_texture_from_file(texture_id, img_textura):
-    print(texture_id)
     glBindTexture(GL_TEXTURE_2D, texture_id)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
