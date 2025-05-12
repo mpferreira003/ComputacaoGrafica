@@ -80,6 +80,7 @@ verticeInicial_feno, qtd_vertices_feno = loader.load_obj_and_texture('objects/fe
 verticeInicial_caixa, qtd_vertices_caixa = loader.load_obj_and_texture('objects/caixa/caixa.obj', 
                                                                             [
                                                                                 'objects/caixa/textures/grama.jpg',
+                                                                                'objects/caixa/textures/interno.jpg',
                                                                                 'objects/caixa/textures/ceu.jpg'
                                                                             ],
                                                                             vertices_list,
@@ -92,6 +93,12 @@ verticeInicial_ovelha, qtd_vertices_ovelha = loader.load_obj_and_texture('object
                                                                             vertices_list,
                                                                             textures_coord_list,
                                                                             find_textures=True)
+
+verticeInicial_moinho, qtd_vertices_moinho = loader.load_obj_and_texture('objects/moinho/moinho.obj', 
+                                                                            [],
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=False)
 
 ## ----------------------------------------------------------------------------------------------------------------
 
@@ -168,21 +175,21 @@ fenos = []
 
 altura_do_chao = 0.02
 for x_add in range(3):
-    x = 0.2+x_add*0.125
+    x = 0.2+x_add*0.125*1.2
     feno = Model(verticeInicial_feno,qtd_vertices_feno,2,
                 pos=np.array([1.8,x,altura_do_chao]),
                 scale=np.ones(3),
-                normal_scale=1/500,
+                normal_scale=1/400,
                 rotation=[(np.array([1,0,0]),90)]
                 
                 )
     fenos.append(feno)
 for x_add in range(2):
-    x = 0.2+0.125*(x_add+1) - 0.125/2
+    x = 0.2+0.125*1.2*(x_add+1) - 0.125*1.2/2
     feno = Model(verticeInicial_feno,qtd_vertices_feno,2,
-                pos=np.array([1.8,x,altura_do_chao+0.125]),
+                pos=np.array([1.8,x,altura_do_chao+0.125*1.2]),
                 scale=np.ones(3),
-                normal_scale=1/500,
+                normal_scale=1/400,
                 rotation=[(np.array([1,0,0]),90)]
                 
                 )
@@ -211,21 +218,43 @@ for i in range(-10,10):
                 )
         choes.append(chao)
 
-ceu = Model(verticeInicial_caixa,qtd_vertices_caixa,4,
+chao_interno = Model(verticeInicial_caixa,qtd_vertices_caixa,4,
+                pos=np.array([1,1,-1]),
+                scale=np.array([1,0.001,2]),
+                normal_scale=1
+                )
+
+ceu = Model(verticeInicial_caixa,qtd_vertices_caixa,5,
                 pos=np.array([0,0,0]),
                 scale=np.array([1,-1,1]),
                 normal_scale=120
                 )
 
 ovelhas = []
-for i in range(3):
-    x = random.uniform()*3
-    y = random.uniform()*3
-    ovelha = Model(verticeInicial_ovelha,qtd_vertices_ovelha,5,
-                pos=np.array([10,0,0]),
+for i in range(10):
+    x = random.uniform()
+    y = random.uniform()
+    
+    x = (x-0.5)*30
+    y = (y-0.5)*30
+    
+    x = min(abs(x),10) * x/abs(x)
+    y = min(abs(y),10) * y/abs(y)
+    
+    
+    angle = (random.uniform())*360
+    ovelha = Model(verticeInicial_ovelha,qtd_vertices_ovelha,6,
+                pos=np.array([x,0,y]),
                 scale=np.ones(3)/2,
+                rotation = [(np.array([0,1,0]),angle)]
                 )
     ovelhas.append(ovelha)
+    
+moinho = Model(verticeInicial_moinho,qtd_vertices_moinho,0,
+                pos=np.array([15,0,15]),
+                scale=np.ones(3),
+                normal_scale=1/20
+                )
 
 
 lastFrame = glfw.get_time()
@@ -258,6 +287,8 @@ while not glfw.window_should_close(window):
     ceu.draw(program)
     for ovelha in ovelhas:
         ovelha.draw(program)
+    moinho.draw(program)
+    chao_interno.draw(program)
     
     
     mat_view = cam.view()
