@@ -79,7 +79,7 @@ verticeInicial_feno, qtd_vertices_feno = loader.load_obj_and_texture('objects/fe
 
 verticeInicial_caixa, qtd_vertices_caixa = loader.load_obj_and_texture('objects/caixa/caixa.obj', 
                                                                             [
-                                                                                'objects/caixa/textures/grama.jpg',
+                                                                                'objects/caixa/textures/grama.png',
                                                                                 'objects/caixa/textures/interno.jpg',
                                                                                 'objects/caixa/textures/ceu.jpg'
                                                                             ],
@@ -95,6 +95,23 @@ verticeInicial_ovelha, qtd_vertices_ovelha = loader.load_obj_and_texture('object
                                                                             find_textures=True)
 
 verticeInicial_moinho, qtd_vertices_moinho = loader.load_obj_and_texture('objects/moinho/moinho.obj', 
+                                                                            [],
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=False)
+
+verticeInicial_galinha, qtd_vertices_galinha = loader.load_obj_and_texture('objects/galinha/galinha.obj', 
+                                                                            None,
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
+
+verticeInicial_grama_1, qtd_vertices_grama_1 = loader.load_obj_and_texture('objects/grama_1/grama.obj', 
+                                                                            None,
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
+verticeInicial_grama_2, qtd_vertices_grama_2 = loader.load_obj_and_texture('objects/grama_2/grama.obj', 
                                                                             [],
                                                                             vertices_list,
                                                                             textures_coord_list,
@@ -256,6 +273,35 @@ moinho = Model(verticeInicial_moinho,qtd_vertices_moinho,0,
                 normal_scale=1/20
                 )
 
+galinha = Model(verticeInicial_galinha,qtd_vertices_galinha,7,
+                pos=np.array([1,0,-5]),
+                scale=np.ones(3)/2,
+                normal_scale=1
+                )
+
+gramas = []
+n_gramas = 300
+for i in range(n_gramas):
+    tipo = 1 if random.uniform()>0.5 else 0
+    textura_tipo = 1 if random.uniform()>0.8 else 0
+    
+    vi = verticeInicial_grama_1 if tipo==1 else verticeInicial_grama_2
+    qtd = qtd_vertices_grama_2 if tipo==1 else qtd_vertices_grama_2
+    textura_id = 7 if tipo==1 else 8
+    
+    loop = True
+    while loop:
+        x = (random.rand()-0.5)*30
+        y = (random.rand()-0.5)*30
+        if (abs(x)>7 and abs(y)>7):
+            loop=False
+    grama = Model(vi,qtd,textura_id,
+            pos=np.array([x,0,y]),
+            scale=np.ones(3),
+            normal_scale=1
+            )
+    gramas.append(grama)
+
 
 lastFrame = glfw.get_time()
 while not glfw.window_should_close(window):
@@ -281,7 +327,7 @@ while not glfw.window_should_close(window):
     porco.draw(program)
     for feno in fenos:
         feno.draw(program)
-    # cavalo.draw(program)
+        
     for chao in choes:
         chao.draw(program)
     ceu.draw(program)
@@ -289,6 +335,10 @@ while not glfw.window_should_close(window):
         ovelha.draw(program)
     moinho.draw(program)
     chao_interno.draw(program)
+    galinha.draw(program)
+    
+    for grama in gramas:
+        grama.draw(program)
     
     
     mat_view = cam.view()
