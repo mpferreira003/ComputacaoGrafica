@@ -1,5 +1,6 @@
 from OpenGL.GL import *
 from PIL import Image
+import os
 
 
 def load_model_from_file(filename):
@@ -38,7 +39,7 @@ def load_model_from_file(filename):
                     face_texture.append(int(w[1]))
                 else:
                     face_texture.append(0)
-
+            
             faces.append((face, face_texture, material))
 
     model = {}
@@ -58,10 +59,11 @@ def load_texture_from_file(texture_id, img_textura):
     img = Image.open(img_textura)
     img_width = img.size[0]
     img_height = img.size[1]
-    image_data = img.tobytes("raw", "RGB", 0, -1)
+    img_rgb = img.convert("RGB")
+    image_data = img_rgb.tobytes("raw", "RGB", 0, -1)
     #image_data = np.array(list(img.getdata()), np.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data)
-
+    print(f"Textura: {img_textura} > {texture_id}")
 
 
 '''
@@ -80,8 +82,14 @@ def circular_sliding_window_of_three(arr):
 global numberTextures
 numberTextures = 0
 
-def load_obj_and_texture(objFile, texturesList,vertices_list,textures_coord_list):
+def load_obj_and_texture(objFile, texturesList,vertices_list,textures_coord_list,find_textures=False):
     modelo = load_model_from_file(objFile)
+    
+    if texturesList is None and find_textures:
+        path = os.path.join(os.path.dirname(objFile),'textures')
+        texturesList = os.listdir(path)
+        texturesList = [os.path.join(path,filename) for filename in texturesList]
+        print("texture_list: ",texturesList)
     
     ### inserindo vertices do modelo no vetor de vertices
     verticeInicial = len(vertices_list)

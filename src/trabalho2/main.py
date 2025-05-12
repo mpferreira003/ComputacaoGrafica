@@ -3,6 +3,7 @@ from OpenGL.GL import *
 import numpy as np
 import glm
 import math
+import random
 from numpy import random
 from PIL import Image
 
@@ -47,14 +48,50 @@ textures_coord_list = []
 
 ## Desenhando ----------
 # carrega caixa (modelo e texturas)
-verticeInicial_caixa, quantosVertices_caixa = loader.load_obj_and_texture('objects/caixa/caixa.obj', 
-                                                                          ['objects/caixa/caixa.jpg', 
-                                                                           'objects/caixa/tijolos.jpg', 
-                                                                           'objects/caixa/matrix.jpg'],
-                                                                           vertices_list,
-                                                                           textures_coord_list)
+verticeInicial_estabulo, quantosVertices_estabulo = loader.load_obj_and_texture('objects/estabulo/estabulo.obj', 
+                                                                            ['objects/estabulo/textures/002_diffuse.png'],
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
 
 
+
+
+verticeInicial_pig, qtd_vertices_pig = loader.load_obj_and_texture('objects/pig/pig.obj', 
+                                                                            None,
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
+
+verticeInicial_feno, qtd_vertices_feno = loader.load_obj_and_texture('objects/feno/feno.obj', 
+                                                                            None,
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
+
+
+                                                                        
+# verticeInicial_horse, qtd_vertices_horse = loader.load_obj_and_texture('objects/horse/horse.obj', 
+#                                                                             None,
+#                                                                             vertices_list,
+#                                                                             textures_coord_list,
+#                                                                             find_textures=True)
+
+verticeInicial_caixa, qtd_vertices_caixa = loader.load_obj_and_texture('objects/caixa/caixa.obj', 
+                                                                            [
+                                                                                'objects/caixa/textures/grama.jpg',
+                                                                                'objects/caixa/textures/ceu.jpg'
+                                                                            ],
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=False)
+
+
+verticeInicial_ovelha, qtd_vertices_ovelha = loader.load_obj_and_texture('objects/ovelha/ovelha.obj', 
+                                                                            None,
+                                                                            vertices_list,
+                                                                            textures_coord_list,
+                                                                            find_textures=True)
 
 ## ----------------------------------------------------------------------------------------------------------------
 
@@ -93,7 +130,11 @@ glVertexAttribPointer(loc_texture_coord, 2, GL_FLOAT, False, stride, offset)
 
 ## ----------------------------------------------------------------------------------------------------------------
 
-cam = camera.Camera(window,altura,largura)
+cam = camera.Camera(window,altura,largura,
+                    cameraPos= glm.vec3(0.68,     0.30,    -1.10 ),
+                    cameraFront= glm.vec3(0.97,    0.096,    -0.19 ),
+                    cameraUp= glm.vec3(0,            1,            0 ),
+                    yaw=-15.65,pitch=3.75,fov=45.0,main_speed=20)
 
 
 ## ------------ exibindo janela
@@ -105,16 +146,86 @@ glfw.show_window(window)
 glEnable(GL_DEPTH_TEST) ### importante para 3D
 polygonal_mode = False 
 
-range_caixas = (-5,5)
-textures = np.random.randint(0,3,len(range(*range_caixas)))
+
+estabulo = Model(verticeInicial_estabulo, 
+                    quantosVertices_estabulo,
+                    0,
+                    pos=np.array([0,0,0]),
+                    scale=np.ones(3)/5,
+                    rotation=[(np.array([1,0,0]),0)],
+                    )
+    
+
+porco = Model(verticeInicial_pig,qtd_vertices_pig,1,
+              pos=np.array([-3.8,4,0]),
+              scale=np.ones(3)/2,
+              rotation=[(np.array([1,0,0]),90),
+                        (np.array([0,0,1]),90)]
+            )
 
 
-caixas = []
-for i in range(5):
-    caixas.append(Model(verticeInicial_caixa, 
-                        quantosVertices_caixa,
-                        i%3,
-                        pos=np.array([0,0,i*2])))
+fenos = []
+
+altura_do_chao = 0.02
+for x_add in range(3):
+    x = 0.2+x_add*0.125
+    feno = Model(verticeInicial_feno,qtd_vertices_feno,2,
+                pos=np.array([1.8,x,altura_do_chao]),
+                scale=np.ones(3),
+                normal_scale=1/500,
+                rotation=[(np.array([1,0,0]),90)]
+                
+                )
+    fenos.append(feno)
+for x_add in range(2):
+    x = 0.2+0.125*(x_add+1) - 0.125/2
+    feno = Model(verticeInicial_feno,qtd_vertices_feno,2,
+                pos=np.array([1.8,x,altura_do_chao+0.125]),
+                scale=np.ones(3),
+                normal_scale=1/500,
+                rotation=[(np.array([1,0,0]),90)]
+                
+                )
+    fenos.append(feno)
+
+
+# cavalo = Model(verticeInicial_horse,qtd_vertices_horse,3,
+#               pos=np.array([0,0,0]),
+#               scale=np.ones(3),
+#             #   rotation=[(np.array([1,0,0]),90),
+#             #             (np.array([0,0,1]),90)]
+#             )
+
+
+choes = []
+for i in range(-10,10):
+    for j in range(-10,10):
+        x = i*2.0
+        y = j*2.0
+        chao = Model(verticeInicial_caixa,qtd_vertices_caixa,3,
+                pos=np.array([x,0,y]),
+                scale=np.array([1,0.0001,1]),
+                normal_scale=1
+                #   rotation=[(np.array([1,0,0]),90),
+                #             (np.array([0,0,1]),90)]
+                )
+        choes.append(chao)
+
+ceu = Model(verticeInicial_caixa,qtd_vertices_caixa,4,
+                pos=np.array([0,0,0]),
+                scale=np.array([1,-1,1]),
+                normal_scale=120
+                )
+
+ovelhas = []
+for i in range(3):
+    x = random.uniform()*3
+    y = random.uniform()*3
+    ovelha = Model(verticeInicial_ovelha,qtd_vertices_ovelha,5,
+                pos=np.array([10,0,0]),
+                scale=np.ones(3)/2,
+                )
+    ovelhas.append(ovelha)
 
 
 lastFrame = glfw.get_time()
@@ -124,20 +235,30 @@ while not glfw.window_should_close(window):
     deltaTime = currentFrame - lastFrame
     lastFrame = currentFrame
     cam.atualize_speed(deltaTime)
-
+    
     glfw.poll_events() 
-       
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    
     glClearColor(1.0, 1.0, 1.0, 1.0)
-    
     if polygonal_mode:
         glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
     else:
         glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
     
-    for caixa in caixas:
-        caixa.draw(program)
+    
+    
+    
+    ## Draw dos modelos:
+    estabulo.draw(program)
+    porco.draw(program)
+    for feno in fenos:
+        feno.draw(program)
+    # cavalo.draw(program)
+    for chao in choes:
+        chao.draw(program)
+    ceu.draw(program)
+    for ovelha in ovelhas:
+        ovelha.draw(program)
+    
     
     mat_view = cam.view()
     loc_view = glGetUniformLocation(program, "view")

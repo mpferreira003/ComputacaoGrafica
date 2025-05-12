@@ -23,17 +23,21 @@ class Model():
                  texture_id:int,
                  pos:np.ndarray = np.zeros(3),
                  scale:np.ndarray = np.ones(3),
-                 rotation:np.ndarray = np.zeros(3),
-                 angle:float = 0.0):
+                 rotation:np.ndarray = [(np.zeros(3),0)],
+                 normal_scale=1):
+        self.normal_scale=normal_scale
         self.verticeInicial  = vertice_inicial
         self.quantosVertices = qtd_vertices
         self.texture_id=texture_id
-        self.i_pos=pos
-        self.i_scale=scale
-        self.i_rotation=rotation
-        self.i_angle=angle
+        self.i_pos=pos/normal_scale
+        self.i_scale=scale*normal_scale
+        
+        ## descompacta a rotação:
+        self.i_rotation,self.i_angle = matriz.compose_rotacoes(rotation)
+        
         
         self.reset()
+        
         
     def modify(self, add_pos:np.ndarray=np.zeros(3),add_rot:np.ndarray=np.zeros(3),add_scale:np.ndarray=np.zeros(3),angle:float=0,
                instant_angle=False,
@@ -44,14 +48,14 @@ class Model():
         feita de fato quando for chamado o método draw
         """
         if instant_pos:
-            self.pos += add_pos
+            self.pos += add_pos/self.normal_scale
         else:
-            self.pos = add_pos
+            self.pos = add_pos/self.normal_scale
             
         if instant_scale:
-            self.scale += add_scale
+            self.scale += add_scale*self.normal_scale
         else:
-            self.scale = add_scale
+            self.scale = add_scale*self.normal_scale
             
         if instant_angle:
             self.rotation += add_rot

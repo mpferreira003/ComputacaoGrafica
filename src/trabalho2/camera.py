@@ -21,15 +21,21 @@ class Camera():
                  yaw   = -90.0,
                  pitch =  0.0,
                  fov   =  45.0,
+                 near = 0.1,
+                 far = 200,
+                 chao_limit=0,
                  sensitivity:float=0.1,
                  main_speed=50):
         self.yaw=yaw
         self.pitch=pitch
         self.fov=fov
+        self.near=near
+        self.far=far
         
         self.sensitivity=sensitivity
         self.main_speed=main_speed
         self.cameraSpeed = 0
+        self.chao_limit=chao_limit
         
         self.cameraPos=cameraPos
         self.cameraFront=cameraFront
@@ -62,31 +68,46 @@ class Camera():
             self.get_status()
         
         if key == glfw.KEY_W and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos += self.cameraSpeed * self.cameraFront
+            new_pos = self.cameraPos + self.cameraSpeed * self.cameraFront
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
         
         if key == glfw.KEY_S and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos -= self.cameraSpeed * self.cameraFront
+            new_pos = self.cameraPos - self.cameraSpeed * self.cameraFront
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
         
         if key == glfw.KEY_A and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos -= glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
+            new_pos = self.cameraPos - glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
             
         if key == glfw.KEY_D and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos += glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
+            new_pos = self.cameraPos + glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
 
         if key == glfw.KEY_SPACE and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos += self.cameraUp * self.cameraSpeed
+            new_pos = self.cameraPos + self.cameraUp * self.cameraSpeed
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
         
         if key == glfw.KEY_LEFT_SHIFT and (action == glfw.PRESS or action == glfw.REPEAT):
-            self.cameraPos -= self.cameraUp * self.cameraSpeed
+            new_pos = self.cameraPos - self.cameraUp * self.cameraSpeed
+            if new_pos[1]>self.chao_limit:
+                self.cameraPos = new_pos
             
         if key == glfw.KEY_P and action == glfw.PRESS:
             polygonal_mode = not polygonal_mode
         
     def get_status(self):
         print("Camera status --- ")
-        print(f"yaw: {self.yaw}")
-        print(f"pitch: {self.pitch}")
-        print(f"fov: {self.fov}\n")
+        print(f"cameraPos: {self.cameraPos}")
+        print(f"cameraFront: {self.cameraFront}")
+        print(f"cameraUp: {self.cameraUp}")
+        print(f'yaw: {self.yaw}')
+        print(f'pitch: {self.pitch}')
+        print(f'fov: {self.fov}\n')
     
     
     def framebuffer_size_callback(window, largura, altura):
@@ -142,4 +163,4 @@ class Camera():
     def view(self):
         return matriz.view(self.cameraPos, self.cameraFront, self.cameraUp)
     def projection(self):
-        return matriz.projection(self.fov,self.altura,self.largura)
+        return matriz.projection(self.fov,self.altura,self.largura,near=self.near,far=self.far)
