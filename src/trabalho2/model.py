@@ -24,6 +24,7 @@ class Model():
                  pos:np.ndarray = np.zeros(3),
                  scale:np.ndarray = np.ones(3),
                  rotation:np.ndarray = [(np.zeros(3),0)],
+                 centroid=np.zeros(3),
                  normal_scale=1):
         self.normal_scale=normal_scale
         self.verticeInicial  = vertice_inicial
@@ -31,10 +32,10 @@ class Model():
         self.texture_id=texture_id
         self.i_pos=pos/normal_scale
         self.i_scale=scale*normal_scale
+        self.centroid = centroid
         
         ## descompacta a rotação:
         self.i_rotation,self.i_angle = matriz.compose_rotacoes(rotation)
-        
         
         self.reset()
         
@@ -48,21 +49,23 @@ class Model():
         feita de fato quando for chamado o método draw
         """
         if instant_pos:
-            self.pos += add_pos/self.normal_scale
-        else:
             self.pos = add_pos/self.normal_scale
+        else:
+            self.pos += add_pos/self.normal_scale
             
         if instant_scale:
-            self.scale += add_scale*self.normal_scale
+            self.scale = add_scale#*self.normal_scale
         else:
-            self.scale = add_scale*self.normal_scale
-            
+            self.scale += add_scale#*self.normal_scale
+        
         if instant_angle:
-            self.rotation += add_rot
-        else:
             self.rotation = add_rot
+        else:
+            self.rotation += add_rot
         
         self.add_angle += angle
+    
+    
     def reset(self):
         self.pos=self.i_pos.copy()
         self.scale=self.i_scale.copy()
@@ -70,7 +73,7 @@ class Model():
         self.angle=self.i_angle
     
     def draw(self, program):
-        mat_model = matriz.model_matrix(self.angle, self.pos, self.rotation, self.scale)
+        mat_model = matriz.model_matrix(self.angle, self.pos, self.rotation, self.scale,centroid=self.centroid)
         loc_model = opengl.glGetUniformLocation(program, "model")
         opengl.glUniformMatrix4fv(loc_model, 1, opengl.GL_TRUE, mat_model)
             

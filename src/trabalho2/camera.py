@@ -2,6 +2,7 @@ import glm
 import glfw
 from OpenGL.GL import *
 import matriz
+import math
 
 class Camera():
     
@@ -24,6 +25,7 @@ class Camera():
                  near = 0.1,
                  far = 200,
                  chao_limit=0,
+                 limit_distance=28.29,
                  sensitivity:float=0.1,
                  main_speed=50):
         self.yaw=yaw
@@ -36,6 +38,7 @@ class Camera():
         self.main_speed=main_speed
         self.cameraSpeed = 0
         self.chao_limit=chao_limit
+        self.limit_distance=limit_distance
         
         self.cameraPos=cameraPos
         self.cameraFront=cameraFront
@@ -57,9 +60,19 @@ class Camera():
         
         # tell GLFW to capture our mouse
         glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+        
+        self.output_value = None
+        self.events_handler = []
     
     def atualize_speed(self,deltaTime):
         self.cameraSpeed = self.main_speed*deltaTime
+    
+    def add_event_handler(self,target_key,output_value):
+        def handler(key,action):
+            if key == target_key and (action == glfw.PRESS or action == glfw.REPEAT):
+                return True,output_value
+            return False,None
+        self.events_handler.append(handler)
     def key_event(self,window,key,scancode,action,mods):
         if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
             glfw.set_window_should_close(window, True)
@@ -69,36 +82,53 @@ class Camera():
         
         if key == glfw.KEY_W and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos + self.cameraSpeed * self.cameraFront
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
         
         if key == glfw.KEY_S and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos - self.cameraSpeed * self.cameraFront
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
         
         if key == glfw.KEY_A and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos - glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
             
         if key == glfw.KEY_D and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos + glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * self.cameraSpeed
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
 
         if key == glfw.KEY_SPACE and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos + self.cameraUp * self.cameraSpeed
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
         
         if key == glfw.KEY_LEFT_SHIFT and (action == glfw.PRESS or action == glfw.REPEAT):
             new_pos = self.cameraPos - self.cameraUp * self.cameraSpeed
-            if new_pos[1]>self.chao_limit:
+            d = math.sqrt(new_pos[0]**2 + new_pos[1]**2 + new_pos[2]**2)
+            if new_pos[1]>self.chao_limit and d<self.limit_distance:
                 self.cameraPos = new_pos
             
+            
+            
+        ## Controle dos objetos:
+        self.output_value=None
+        for event_handler in self.events_handler:
+            has_output,self.output_value = event_handler(key, action)
+            if has_output:
+                break
+        
+        
+        
         if key == glfw.KEY_P and action == glfw.PRESS:
-            polygonal_mode = not polygonal_mode
+            self.polygonal_mode = not self.polygonal_mode
         
     def get_status(self):
         print("Camera status --- ")

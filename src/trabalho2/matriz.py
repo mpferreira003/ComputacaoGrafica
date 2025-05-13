@@ -1,36 +1,33 @@
 import math
 import glm
 import numpy as np
-def model_matrix(angle, translation, rotation, scale): ## angle deve ser em radianos
+def model_matrix(angle, translation, rotation, scale, centroid=(0.0, 0.0, 0.0)):
     t_x, t_y, t_z = translation
     r_x, r_y, r_z = rotation
     s_x, s_y, s_z = scale
+    c_x, c_y, c_z = centroid  # centro no espaço do mundo
     
-    has_translation = not ((t_x)==0 and (t_y)==0 and (t_z)==0 )
-    has_rotation = True
-    has_scale = not ((s_x)==0 and (s_y)==0 and (s_z)==0 )
+    matrix = glm.mat4(1.0)
+
+    # 1. Translada para o mundo (posição final do objeto)
+    matrix = glm.translate(matrix, glm.vec3(t_x, t_y, t_z))
+
+    # 2. Translada para o centro do objeto
+    matrix = glm.translate(matrix, glm.vec3(c_x, c_y, c_z))
     
-    # angle = math.radians(angle)
-    matrix_transform = glm.mat4(1.0) # instanciando uma matriz identidade
+    # 3. Aplica escala
+    matrix = glm.scale(matrix, glm.vec3(s_x, s_y, s_z))
     
+    # 4. Volta do centro
+    matrix = glm.translate(matrix, glm.vec3(-c_x, -c_y, -c_z))
     
-    if (has_rotation and has_scale and has_translation):
-        matrix_transform = glm.scale(matrix_transform, glm.vec3(s_x, s_y, s_z)) ## aplica escala
-        matrix_transform = glm.rotate(matrix_transform, angle, glm.vec3(r_x, r_y, r_z)) ## aplica rotacao
-        matrix_transform = glm.translate(matrix_transform, glm.vec3(t_x, t_y, t_z))     ## aplica translação
-    elif (has_rotation or has_translation):
-            ## escala, faz rotação e move (no mesmo eixo)
-            # print("## escala, faz rotação e move (no mesmo eixo)")
-            matrix_transform = glm.translate(matrix_transform, glm.vec3(t_x, t_y, t_z))     ## aplica translação
-            matrix_transform = glm.rotate(matrix_transform, angle, glm.vec3(r_x, r_y, r_z)) ## aplica rotacao
-            matrix_transform = glm.scale(matrix_transform, glm.vec3(s_x, s_y, s_z)) ## aplica escala
-        
-    elif (has_translation):
-            ## apenas move
-            # print("## apenas move")
-            matrix_transform = glm.translate(matrix_transform, glm.vec3(t_x, t_y, t_z))     ## aplica translação    
-    matrix_transform = np.array(matrix_transform)
-    return matrix_transform
+    # 5. Aplica rotação se quiser (em torno do centro)
+    rotation_axis = glm.vec3(r_x, r_y, r_z)
+    if angle != 0.0 and glm.length(rotation_axis) > 0.0:
+        rotation_axis = glm.normalize(rotation_axis)
+        matrix = glm.rotate(matrix, angle, rotation_axis)
+
+    return np.array(matrix)
 
 def view(cameraPos, cameraFront, cameraUp):
     mat_view = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
